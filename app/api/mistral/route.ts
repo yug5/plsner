@@ -7,6 +7,11 @@ const mistral = createMistral({
 
 export async function POST(req: Request) {
     try {
+        // Check if API key is available
+        if (!process.env.MISTRAL_API_KEY) {
+            throw new Error('MISTRAL_API_KEY is not configured');
+        }
+
         const body = await req.json();
 
         const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
@@ -26,7 +31,10 @@ export async function POST(req: Request) {
         });
 
         if (!response.ok) {
-            throw new Error(`Mistral API error: ${response.statusText}`);
+            const errorData = await response.json().catch(() => null);
+            throw new Error(
+                `Mistral API error: ${response.status} ${response.statusText}\n${JSON.stringify(errorData)}`
+            );
         }
 
         const data = await response.json();
@@ -35,7 +43,11 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('Mistral API Error:', error);
         return NextResponse.json(
-            { message: 'Internal Server Error' },
+            {
+                message: 'Internal Server Error',
+                error: error instanceof Error ? error.message : 'Unknown error',
+                timestamp: new Date().toISOString()
+            },
             { status: 500 }
         );
     }
