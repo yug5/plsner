@@ -38,8 +38,7 @@ export async function generateItinerary(
       - Duration: ${tripDays} days (${params.startDate} to ${params.endDate})
       - Number of travelers: ${params.travelers}
       - Budget: ₹${budgetInINR.toLocaleString("en-IN")} (Indian Rupees)
-      - Interests and preferences: ${
-        params.interests || "General sightseeing and local experiences"
+      - Interests and preferences: ${params.interests || "General sightseeing and local experiences"
       }
 
       Please provide a day-by-day itinerary with:
@@ -55,14 +54,26 @@ export async function generateItinerary(
     `;
 
     try {
-      // Use Mistral AI via Vercel AI SDK with the provided API key
-      const response = await generateText({
-        model: mistral("mistral-large-latest"),
-        prompt: prompt,
-        maxTokens: 2000,
+      // Call our API route instead of Mistral directly
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mistral`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'mistral-large-latest',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 2000,
+        }),
       });
 
-      return response.text;
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+
     } catch (error) {
       console.error(
         "Error using Mistral AI, falling back to mock response:",
@@ -74,8 +85,7 @@ export async function generateItinerary(
         <h2>Your ${tripDays}-Day ${params.destination} Itinerary</h2>
         
         <h3>Day 1: Arrival and Orientation</h3>
-        <p><strong>Morning:</strong> Arrive at ${
-          params.destination
+        <p><strong>Morning:</strong> Arrive at ${params.destination
         } and check into your accommodation. Take some time to freshen up and get settled.</p>
         <p><strong>Afternoon:</strong> Take a leisurely walk around your neighborhood to get oriented. Visit a local café for a light lunch (₹1,125-1,500 per person).</p>
         <p><strong>Evening:</strong> Enjoy dinner at a popular local restaurant that showcases regional cuisine (₹2,250-3,000 per person).</p>
@@ -92,9 +102,8 @@ export async function generateItinerary(
         
         <h3>Transportation Tips:</h3>
         <ul>
-          <li>Public transportation is efficient and affordable in ${
-            params.destination
-          }. Consider getting a multi-day pass.</li>
+          <li>Public transportation is efficient and affordable in ${params.destination
+        }. Consider getting a multi-day pass.</li>
           <li>Taxis are readily available but can be expensive for longer trips.</li>
           <li>Many attractions are within walking distance of the city center.</li>
         </ul>
@@ -103,19 +112,18 @@ export async function generateItinerary(
         <p>Based on your travel dates, you might be able to experience local festivals or seasonal events. Check with your accommodation for up-to-date information.</p>
         
         <h3>Estimated Total Cost:</h3>
-        <p>For ${
-          params.travelers
+        <p>For ${params.travelers
         } traveler(s) over ${tripDays} days: approximately ₹${(
-        Math.min(
-          params.budget,
-          300 * Number.parseInt(params.travelers) * tripDays
-        ) * USD_TO_INR_RATE
-      ).toLocaleString("en-IN")} - ₹${(
-        Math.min(
-          params.budget,
-          400 * Number.parseInt(params.travelers) * tripDays
-        ) * USD_TO_INR_RATE
-      ).toLocaleString("en-IN")}</p>
+          Math.min(
+            params.budget,
+            300 * Number.parseInt(params.travelers) * tripDays
+          ) * USD_TO_INR_RATE
+        ).toLocaleString("en-IN")} - ₹${(
+          Math.min(
+            params.budget,
+            400 * Number.parseInt(params.travelers) * tripDays
+          ) * USD_TO_INR_RATE
+        ).toLocaleString("en-IN")}</p>
       `;
       return mockResponse;
     }

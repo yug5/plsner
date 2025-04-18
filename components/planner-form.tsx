@@ -56,6 +56,15 @@ export function PlannerForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsGenerating(true)
+    const timeoutId = setTimeout(() => {
+      setIsGenerating(false)
+      toast({
+        title: "Request Timeout",
+        description: "The request took too long. Please try again.",
+        variant: "destructive",
+      })
+    }, 30000) // 30 second timeout
+
     try {
       toast({
         title: "Generating Itinerary",
@@ -63,12 +72,14 @@ export function PlannerForm() {
       })
 
       const result = await generateItinerary(values)
+      clearTimeout(timeoutId)
       setItinerary(result)
     } catch (error) {
       console.error("Failed to generate itinerary:", error)
+      clearTimeout(timeoutId)
       toast({
         title: "Error",
-        description: "Failed to generate itinerary. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate itinerary. Please try again.",
         variant: "destructive",
       })
     } finally {
