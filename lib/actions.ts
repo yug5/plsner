@@ -33,24 +33,18 @@ export async function generateItinerary(
     const budgetInINR = params.budget * USD_TO_INR_RATE;
 
     const prompt = `
-      Create a detailed travel itinerary for a trip to ${params.destination}.
-      Trip details:
-      - Duration: ${tripDays} days (${params.startDate} to ${params.endDate})
-      - Number of travelers: ${params.travelers}
-      - Budget: ₹${budgetInINR.toLocaleString("en-IN")} (Indian Rupees)
-      - Interests and preferences: ${params.interests || "General sightseeing and local experiences"
-      }
+      Create a concise travel itinerary for ${params.destination} (${tripDays} days).
+      Travelers: ${params.travelers}, Budget: ₹${budgetInINR.toLocaleString("en-IN")}
+      Interests: ${params.interests || "General sightseeing"}
 
-      Please provide a day-by-day itinerary with:
-      1. Morning, afternoon, and evening activities
-      2. Recommended restaurants for meals
-      3. Must-see attractions
-      4. Estimated costs for activities in Indian Rupees (₹)
-      5. Local transportation tips
-      6. Any special events happening during the dates
+      Format as HTML with:
+      - Day-by-day schedule (morning/afternoon/evening)
+      - Key attractions and activities
+      - Restaurant recommendations
+      - Estimated costs in ₹
+      - Transportation tips
       
-      Format the itinerary in a clear, organized way with HTML formatting.
-      Use Indian Rupees (₹) for all price mentions.
+      Keep it brief and practical.
     `;
 
     try {
@@ -61,9 +55,9 @@ export async function generateItinerary(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'mistral-large-latest',
+          model: 'mistral-small-latest',
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 2000,
+          max_tokens: 1000,
         }),
       });
 

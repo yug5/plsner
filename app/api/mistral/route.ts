@@ -15,7 +15,14 @@ export async function POST(req: Request) {
                 'Authorization': `Bearer ${process.env.MISTRAL_API_KEY}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify({
+                ...body,
+                model: 'mistral-small-latest',
+                temperature: 0.7,
+                top_p: 0.9,
+                max_tokens: 1000,
+                stream: false,
+            }),
         });
 
         if (!response.ok) {

@@ -349,18 +349,53 @@ export function ItineraryResult({
           value={activeTab}
           onValueChange={setActiveTab}
         >
-          <TabsList className="grid w-full">
-            <TabsTrigger className="w-full" value="overview">
-              Overview
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            {/* <TabsTrigger value="timeline">Timeline</TabsTrigger> */}
           </TabsList>
+
           <TabsContent value="overview" className="mt-6 space-y-6">
             <div className="prose dark:prose-invert max-w-none">
               <div
                 dangerouslySetInnerHTML={{
-                  __html: itinerary.replace(/\n/g, "<br />"),
+                  __html: itinerary.replace(/\n/g, "<br /> ").replace(/<h2>/g, "<h2 class='text-2xl font-bold'>").replace(/<\/h2>/g, "</h2>").replace("```html", "").replace(/^<br\s*\/?>+/i, "").replace(/^\s+/, "")   ,
                 }}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="timeline" className="mt-6">
+            <div className="space-y-8">
+              {parsedDays.map((day) => (
+                <div key={day.day} className="relative">
+                  <div className="absolute left-0 top-0 h-full w-0.5 bg-primary/20" />
+                  <div className="relative pl-8">
+                    <div className="absolute left-0 top-0 h-3 w-3 rounded-full bg-primary" />
+                    <h3 className="text-lg font-semibold">Day {day.day}</h3>
+                    <div className="mt-4 space-y-4">
+                      {day.activities.map((activity, index) => (
+                        <div key={index} className="relative pl-6">
+                          <div className="absolute left-0 top-2 h-2 w-2 rounded-full bg-primary/50" />
+                          <div className="flex items-start gap-2">
+                            <div className="mt-1">
+                              {getActivityIcon(activity.type)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-primary">
+                                {activity.time}
+                              </p>
+                              <p className="font-semibold">{activity.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {activity.description}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
         </Tabs>
